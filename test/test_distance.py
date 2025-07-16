@@ -3,8 +3,6 @@ import re
 import torch
 from PIL import Image
 import torchvision.transforms as T
-import matplotlib.pyplot as plt
-
 from train.train_distance import LightDistanceNet
 
 def extract_index(filename, pattern):
@@ -47,6 +45,7 @@ def run_test(model_path, original_dir, mask_dir, distance_dir):
     ])
 
     file_list = get_test_files(original_dir, mask_dir, distance_dir)
+
     print(f"{len(file_list)} test örneği bulundu.")
 
     with torch.no_grad():
@@ -58,35 +57,23 @@ def run_test(model_path, original_dir, mask_dir, distance_dir):
             image = Image.open(img_path).convert('RGB')
             mask = Image.open(mask_path).convert('L')
 
-            image_tensor = transform_img(image).unsqueeze(0).to(device)
-            mask_tensor = transform_mask(mask).unsqueeze(0).to(device)
+            image = transform_img(image).unsqueeze(0).to(device)
+            mask = transform_mask(mask).unsqueeze(0).to(device)
 
-            input_tensor = torch.cat([image_tensor, mask_tensor], dim=1)
+            input_tensor = torch.cat([image, mask], dim=1)
+
             pred = model(input_tensor).cpu().item()
 
+            # Gerçek mesafeyi oku
             with open(dist_path, 'r') as f:
                 real_dist = float(f.readline().strip())
 
             print(f"{img_name} -> Tahmin: {pred:.2f} / Gerçek: {real_dist:.2f}")
 
-            plot_result(image, mask, pred, real_dist, img_name)
-
-def plot_result(image, mask, pred, real, title):
-    plt.figure(figsize=(6, 6))
-
-    image_resized = image.resize(mask.size)
-    mask_rgb = Image.merge("RGB", (mask, mask, mask))
-    combined = Image.blend(image_resized, mask_rgb, alpha=0.4)
-
-    plt.imshow(combined)
-    plt.axis('off')
-    plt.title(f"{title}\nTahmin: {pred:.2f} / Gerçek: {real:.2f}", fontsize=10)
-    plt.show()
-
 if __name__ == '__main__':
     run_test(
-        model_path="alight_distance_net.pth",
-        original_dir="Original",
-        mask_dir="Mask",
-        distance_dir="Distance"
+        model_path="light_distance_net.pth",
+        original_dir="../Original",
+        mask_dir="../Mask",
+        distance_dir="../Distance"
     )
