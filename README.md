@@ -1,4 +1,4 @@
-# AUV Vision Project
+# AUV Vision
 
 This repository contains code and data for an Autonomous Underwater Vehicle (AUV) vision system, including training, testing, and model conversion scripts.
 
